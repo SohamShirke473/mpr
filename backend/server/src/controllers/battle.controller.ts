@@ -520,3 +520,171 @@ export async function getResults(req: AuthRequest, res: Response): Promise<void>
     res.status(500).json({ error: "Failed to get results" });
   }
 }
+
+export async function reportViolation(req: AuthRequest, res: Response): Promise<void> {
+  const userId = req.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const { battleId } = req.params as { battleId: string };
+  const { reason } = req.body as { reason?: string };
+
+  try {
+    const battle = await prisma.battle.findUnique({
+      where: { id: battleId },
+    });
+
+    if (!battle) {
+      res.status(404).json({ error: "Battle not found" });
+      return;
+    }
+
+    if (battle.status !== "ONGOING") {
+      res.status(400).json({ error: "Battle is not ongoing" });
+      return;
+    }
+
+    const isPlayer1 = battle.player1Id === userId;
+    const isPlayer2 = battle.player2Id === userId;
+
+    if (!isPlayer1 && !isPlayer2) {
+      res.status(403).json({ error: "You are not part of this battle" });
+      return;
+    }
+
+    const isDisqualified = battle.disqualifiedPlayerId !== null;
+    if (isDisqualified) {
+      res.status(400).json({ error: "Battle already decided" });
+      return;
+    }
+
+    const updateData = isPlayer1
+      ? { player1Violations: { increment: 1 } }
+      : { player2Violations: { increment: 1 } };
+
+    const updated = await prisma.battle.update({
+      where: { id: battleId },
+      data: updateData,
+      select: {
+        player1Violations: true,
+        player2Violations: true,
+      },
+    });
+
+    const currentViolations = isPlayer1 ? updated.player1Violations : updated.player2Violations;
+
+    broadcast(battleId, {
+      event: "violation:update",
+      payload: {
+        player1Violations: updated.player1Violations,
+        player2Violations: updated.player2Violations,
+        reportedBy: isPlayer1 ? "player1" : "player2",
+        reason: reason || "Unknown violation",
+      },
+    });
+
+    res.json({
+      violations: currentViolations,
+      maxViolations: 3,
+      disqualified: currentViolations >= 3,
+    });
+  } catch (err) {
+    console.error("reportViolation error:", err);
+    res.status(500).json({ error: "Failed to report violation" });
+  }
+}
+
+export async function disqualifyPlayer(req: AuthRequest, res: Response): Promise<void> {
+  const userId = req.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const { battleId } = req.params as { battleId: string };
+
+  try {
+    const battle = await prisma.battle.findUnique({
+      where: { id: battleId },
+    });
+
+    if (!battle) {
+      res.status(404).json({ error: "Battle not found" });
+      return;
+    }
+
+    if (battle.status !== "ONGOING") {
+      res.status(400).json({ error: "Battle is not ongoing" });
+      return;
+    }
+
+    const isPlayer1 = battle.player1Id === userId;
+    const isPlayer2 = battle.player2Id === userId;
+
+    if (!isPlayer1 && !isPlayer2) {
+      res.status(403).json({ error: "You are not part of this battle" });
+      return;
+    }
+
+    const disqualifiedId = userId;
+    const winnerId = isPlayer1 ? battle.player2Id : battle.player1Id;
+
+    if (!winnerId) {
+      res.status(400).json({ error: "No opponent to win" });
+      return;
+    }
+
+    await prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        status: "COMPLETED",
+        endedAt: new Date(),
+        winnerId: winnerId,
+        disqualifiedPlayerId: disqualifiedId,
+        player1AiBonus: isPlayer1 ? 0 : battle.player1AiBonus,
+        player2AiBonus: isPlayer2 ? 0 : battle.player2AiBonus,
+        aiReview: JSON.stringify({ message: "Disqualified for violations", disqualifiedPlayerId: disqualifiedId }),
+      },
+    });
+
+    const winner = await prisma.user.findUnique({ where: { id: winnerId } });
+    const loser = await prisma.user.findUnique({ where: { id: disqualifiedId } });
+
+    if (winner) {
+      await prisma.user.update({
+        where: { id: winnerId },
+        data: {
+          totalBattles: { increment: 1 },
+          totalPoints: { increment: winner.totalPoints },
+          battlesWon: { increment: 1 },
+        },
+      });
+    }
+
+    if (loser) {
+      await prisma.user.update({
+        where: { id: loser.id },
+        data: {
+          totalBattles: { increment: 1 },
+          battlesLost: { increment: 1 },
+        },
+      });
+    }
+
+    broadcast(battleId, {
+      event: "battle:end",
+      payload: { cancelled: false, disqualified: true, winnerId },
+    });
+
+    res.json({
+      success: true,
+      winnerId,
+      disqualifiedPlayerId: disqualifiedId,
+    });
+  } catch (err) {
+    console.error("disqualifyPlayer error:", err);
+    res.status(500).json({ error: "Failed to disqualify player" });
+  }
+}

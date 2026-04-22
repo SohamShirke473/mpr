@@ -25,6 +25,11 @@ new Worker<BattleEndJob>(
 
     if (!battle || battle.status !== "ONGOING") return;
 
+    if (battle.disqualifiedPlayerId) {
+      console.log(`[battle:end] Battle ${battleId} already decided (disqualified), skipping`);
+      return;
+    }
+
     const rawQuestions = [
       battle.questionEasy,
       battle.questionMedium,

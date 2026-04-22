@@ -432,6 +432,129 @@ export function setupSocketHandlers(io: Server): void {
       }
     );
 
+    socket.on(
+      "violation",
+      async ({ battleId, reason }: { battleId: string; reason?: string }) => {
+        const { userId } = socket.data;
+        console.log(`[violation] userId=${userId}, battleId=${battleId}, reason=${reason}`);
+
+        if (!battleId || !userId) {
+          console.log("[violation] Missing battleId or userId");
+          return;
+        }
+
+        try {
+          const battle = await prisma.battle.findUnique({
+            where: { id: battleId },
+          });
+
+          if (!battle || battle.status !== "ONGOING") {
+            console.log("[violation] Battle not found or not ongoing");
+            return;
+          }
+
+          const isPlayer1 = battle.player1Id === userId;
+          const isPlayer2 = battle.player2Id === userId;
+
+          if (!isPlayer1 && !isPlayer2) {
+            console.log("[violation] User not part of battle");
+            return;
+          }
+
+          if (battle.disqualifiedPlayerId) {
+            console.log("[violation] Already disqualified");
+            return;
+          }
+
+          const updateData = isPlayer1
+            ? { player1Violations: { increment: 1 } }
+            : { player2Violations: { increment: 1 } };
+
+          const updated = await prisma.battle.update({
+            where: { id: battleId },
+            data: updateData,
+            select: {
+              player1Violations: true,
+              player2Violations: true,
+              player1Id: true,
+              player2Id: true,
+            },
+          });
+
+          const currentViolations = isPlayer1
+            ? updated.player1Violations
+            : updated.player2Violations;
+
+          console.log(`[violation] ${isPlayer1 ? "player1" : "player2"} violations: ${currentViolations}`);
+
+          broadcast(battleId, {
+            event: "violation:update",
+            payload: {
+              player1Violations: updated.player1Violations,
+              player2Violations: updated.player2Violations,
+              reportedBy: isPlayer1 ? "player1" : "player2",
+              reason: reason || "Unknown violation",
+            },
+          });
+
+          if (currentViolations >= 3) {
+            console.log(`[violation] Player disqualified! userId=${userId}`);
+
+            const disqualifiedId = userId;
+            const winnerId = isPlayer1 ? updated.player2Id : updated.player1Id;
+
+            if (winnerId) {
+              await prisma.battle.update({
+                where: { id: battleId },
+                data: {
+                  status: "COMPLETED",
+                  endedAt: new Date(),
+                  winnerId: winnerId,
+                  disqualifiedPlayerId: disqualifiedId,
+                  player1AiBonus: isPlayer1 ? 0 : battle.player1AiBonus,
+                  player2AiBonus: isPlayer2 ? 0 : battle.player2AiBonus,
+                  aiReview: JSON.stringify({ message: "Disqualified for violations", disqualifiedPlayerId: disqualifiedId }),
+                },
+              });
+
+              const winner = await prisma.user.findUnique({ where: { id: winnerId } });
+              const loser = await prisma.user.findUnique({ where: { id: disqualifiedId } });
+
+              if (winner) {
+                await prisma.user.update({
+                  where: { id: winnerId },
+                  data: {
+                    totalBattles: { increment: 1 },
+                    battlesWon: { increment: 1 },
+                  },
+                });
+              }
+
+              if (loser) {
+                await prisma.user.update({
+                  where: { id: loser.id },
+                  data: {
+                    totalBattles: { increment: 1 },
+                    battlesLost: { increment: 1 },
+                  },
+                });
+              }
+
+              broadcast(battleId, {
+                event: "battle:end",
+                payload: { cancelled: false, disqualified: true, winnerId },
+              });
+
+              delete battleSockets[battleId];
+              console.log(`[violation] Battle ended. winnerId=${winnerId}, disqualifiedId=${disqualifiedId}`);
+            }
+          }
+        } catch (err) {
+          console.error("[violation] Error:", err);
+        }
+      }
+    );
+
     socket.on("disconnect", async () => {
       const { roomCode, userId, battleId, slot } = socket.data;
 

@@ -172,12 +172,27 @@ export default function BattleArena() {
       setTimeout(() => setOppScorePulse(false), 600);
     });
 
-    socket.on("battle:end", ({ cancelled }: { cancelled: boolean }) => {
+    socket.on("battle:end", ({ cancelled, disqualified, winnerId }: { cancelled: boolean; disqualified?: boolean; winnerId?: string }) => {
       if (cancelled) {
         toast.error("Battle was cancelled");
         void leaveBattle("/");
+      } else if (disqualified) {
+        toast.error("You have been disqualified for violations");
+        void leaveBattle("/");
       } else {
         void leaveBattle(`/results/${battleId}`);
+      }
+    });
+
+    socket.on("violation:update", (data: { player1Violations: number; player2Violations: number; reportedBy: string; reason: string }) => {
+      console.log("[Arena] Violation update:", data);
+      const isPlayer1 = myPlayerRole === "p1";
+      const myViolations = isPlayer1 ? data.player1Violations : data.player2Violations;
+      
+      setViolations(myViolations);
+      
+      if (myViolations >= MAX_VIOLATIONS) {
+        toast.error("You have been disqualified for too many violations");
       }
     });
 
@@ -320,24 +335,16 @@ export default function BattleArena() {
       const next = prev + 1;
       if (next >= MAX_VIOLATIONS) {
         toast.error("Disqualified", {
-          description: "Too many violations. Auto-submitting and ending battle.",
+          description: "Too many violations. Ending battle.",
         });
-        setTimeout(async () => {
-          try {
-            await handleSubmit();
-          } finally {
-            void leaveBattle(`/results/${battleId}`);
-          }
-        }, 500);
       } else if (!deductPoints) {
-        // Some anti-cheat checks are warnings only and do not deduct points.
         toast.warning(`Warning ${next}/${MAX_VIOLATIONS}`, { description: reason });
       } else {
         toast.error(`Violation ${next}/${MAX_VIOLATIONS}`, { description: reason });
       }
       return next;
     });
-  }, [battleId, handleSubmit, leaveBattle]);
+  }, [battleId, leaveBattle]);
 
   const handleQuestionSelectionAttempt = useCallback(() => {
     const now = Date.now();
@@ -352,20 +359,17 @@ export default function BattleArena() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Anti-cheat: detect tab switch or app minimization.
-        // registerViolation("Tab switching or window minimizing detected.");
+        registerViolation("Tab switching or window minimizing detected.");
       }
     };
 
     const handleBlur = () => {
-      // Anti-cheat: detect focus leaving the battle window.
-      // registerViolation("Window focus lost.");
+      registerViolation("Window focus lost.");
     };
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
-        // Anti-cheat: exiting fullscreen during battle is a violation.
-        // registerViolation("Exited fullscreen mode.");
+        registerViolation("Exited fullscreen mode.");
       }
     };
 
@@ -420,7 +424,7 @@ export default function BattleArena() {
   return (
     <div className="min-h-screen bg-background flex flex-col select-none">
 
-      {/* {showFullscreenPrompt && (
+      {showFullscreenPrompt && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-background/95 backdrop-blur-md">
           <div className="flex flex-col items-center gap-6 text-center max-w-sm mx-4">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -443,9 +447,9 @@ export default function BattleArena() {
             </button>
           </div>
         </div>
-      )} */}
+      )}
 
-      {/* {showViolationWarning && (
+      {showViolationWarning && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowViolationWarning(false)} />
           <div className="relative z-10 bg-card border border-border rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col items-center gap-5">
@@ -466,7 +470,7 @@ export default function BattleArena() {
             )}
           </div>
         </div>
-      )} */}
+      )}
 
       {showLeaveDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">

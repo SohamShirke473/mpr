@@ -56,6 +56,10 @@ model Battle {
   player1AiBonus Int @default(0)
   player2AiBonus Int @default(0)
 
+  player1Violations     Int @default(0)
+  player2Violations     Int @default(0)
+  disqualifiedPlayerId  String?
+
   player1EasyLastSubmissionTime    DateTime?
   player1MediumLastSubmissionTime DateTime?
   player1HardLastSubmissionTime   DateTime?

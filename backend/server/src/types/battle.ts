@@ -44,4 +44,13 @@ export type WsEvent =
       event: "battle:player_disconnected";
       payload: { player: "player1" | "player2" };
     }
-  | { event: "battle:end"; payload: { cancelled: boolean } };
+  | { event: "battle:end"; payload: { cancelled: boolean; disqualified?: boolean; winnerId?: string } }
+  | {
+      event: "violation:update";
+      payload: {
+        player1Violations: number;
+        player2Violations: number;
+        reportedBy: string;
+        reason: string;
+      };
+    };

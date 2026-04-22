@@ -7,6 +7,8 @@ import {
   submitCode,
   getResults,
   getBattleStatus,
+  disqualifyPlayer,
+  reportViolation,
 } from "../controllers/battle.controller.js";
 
 const router = Router();
@@ -21,5 +23,7 @@ router.post(
   submitCode
 );
 router.get("/:battleId/results", authMiddleware, getResults);
+router.post("/:battleId/report-violation", authMiddleware, reportViolation);
+router.post("/:battleId/disqualify", authMiddleware, disqualifyPlayer);
 
 export default router;
