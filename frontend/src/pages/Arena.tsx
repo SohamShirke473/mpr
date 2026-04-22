@@ -148,8 +148,7 @@ export default function BattleArena() {
       setProblems(questionList);
       setLoading(false);
       setTimeLeft(Math.floor((new Date(data.endsAt).getTime() - Date.now()) / 1000));
-      // Auto-enter fullscreen as soon as the server marks the battle as started.
-      // void enterFullscreen();
+      setShowFullscreenPrompt(true);
     });
 
     socket.on("score:update", (data: { player1Score: number; player2Score: number }) => {
@@ -547,23 +546,20 @@ export default function BattleArena() {
         <ResizablePanel defaultSize="30" maxSize="30" minSize="0" collapsible collapsedSize="0">
           <div
             className="h-full border-r border-border bg-card flex flex-col overflow-hidden"
-            // onCopy={(e) => {
-            //   // Anti-cheat: block copying from the problem statement.
-            //   e.preventDefault();
-            //   registerViolation("Copying from question panel is blocked.");
-            // }}
-            // onCut={(e) => {
-            //   // Anti-cheat: block cut operations from the problem panel.
-            //   e.preventDefault();
-            //   registerViolation("Cut is blocked.");
-            // }}
-            // onMouseUp={handleQuestionSelectionAttempt}
-            // onKeyUp={handleQuestionSelectionAttempt}
-            // onContextMenu={(e) => {
-            //   // Anti-cheat: disable right-click context actions in battle mode.
-            //   e.preventDefault();
-            //   registerViolation("Right-click menu is disabled during battle.");
-            // }}
+            onCopy={(e) => {
+              e.preventDefault();
+              registerViolation("Copying from question panel is blocked.");
+            }}
+            onCut={(e) => {
+              e.preventDefault();
+              registerViolation("Cut is blocked.");
+            }}
+            onMouseUp={handleQuestionSelectionAttempt}
+            onKeyUp={handleQuestionSelectionAttempt}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              registerViolation("Right-click menu is disabled during battle.");
+            }}
           >
             <div className="flex border-b border-border shrink-0">
               {difficultyOrder.map((diff, i) => (
@@ -665,57 +661,50 @@ export default function BattleArena() {
                       python(),
                       keymap.of([
                         indentWithTab,
-                        // {
-                        //   key: "Mod-c",
-                        //   run: () => {
-                        //     // Anti-cheat: disable keyboard copy shortcut in editor.
-                        //     registerViolation("Copy shortcut is disabled.");
-                        //     return true;
-                        //   },
-                        // },
-                        // {
-                        //   key: "Mod-v",
-                        //   run: () => {
-                        //     // Anti-cheat: disable keyboard paste shortcut in editor.
-                        //     registerViolation("Paste shortcut is disabled.");
-                        //     return true;
-                        //   },
-                        // },
-                        // {
-                        //   key: "Mod-x",
-                        //   run: () => {
-                        //     // Anti-cheat: disable keyboard cut shortcut in editor.
-                        //     registerViolation("Cut shortcut is disabled.");
-                        //     return true;
-                        //   },
-                        // },
+{
+                          key: "Mod-c",
+                          run: () => {
+                            registerViolation("Copy shortcut is disabled.");
+                            return true;
+                          },
+                        },
+                        {
+                          key: "Mod-v",
+                          run: () => {
+                            registerViolation("Paste shortcut is disabled.");
+                            return true;
+                          },
+                        },
+                        {
+                          key: "Mod-x",
+                          run: () => {
+                            registerViolation("Cut shortcut is disabled.");
+                            return true;
+                          },
+                        },
                       ]),
-                      // EditorView.domEventHandlers({
-                      //   copy: (event) => {
-                      //     // Anti-cheat: block copy action from editor context menu.
-                      //     event.preventDefault();
-                      //     registerViolation("Copy is disabled in the editor.");
-                      //     return true;
-                      //   },
-                      //   cut: (event) => {
-                      //     // Anti-cheat: block cut action from editor context menu.
-                      //     event.preventDefault();
-                      //     registerViolation("Cut is disabled in the editor.");
-                      //     return true;
-                      //   },
-                      //   paste: (event) => {
-                      //     // Anti-cheat: block paste into editor during battle.
-                      //     event.preventDefault();
-                      //     registerViolation("Paste is disabled in the editor.");
-                      //     return true;
-                      //   },
-                      //   contextmenu: (event) => {
-                      //     // Anti-cheat: disable right-click menu in the coding editor.
-                      //     event.preventDefault();
-                      //     registerViolation("Right-click is disabled in the editor.");
-                      //     return true;
-                      //   },
-                      // }),
+                      EditorView.domEventHandlers({
+                        copy: (event) => {
+                          event.preventDefault();
+                          registerViolation("Copy is disabled in the editor.");
+                          return true;
+                        },
+                        cut: (event) => {
+                          event.preventDefault();
+                          registerViolation("Cut is disabled in the editor.");
+                          return true;
+                        },
+                        paste: (event) => {
+                          event.preventDefault();
+                          registerViolation("Paste is disabled in the editor.");
+                          return true;
+                        },
+                        contextmenu: (event) => {
+                          event.preventDefault();
+                          registerViolation("Right-click is disabled in the editor.");
+                          return true;
+                        },
+                      }),
                       EditorView.theme({
                         ".cm-content, .cm-line, .cm-scroller": {
                           userSelect: "text",
