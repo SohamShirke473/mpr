@@ -18,6 +18,7 @@ import {
   ResizablePanelGroup, ResizablePanel, ResizableHandle,
 } from "../components/ui/resizable";
 import { useRunCode, useSubmitCode } from "../lib/queries";
+import { battleApi } from "../lib/api";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import type { Question, RunResult, SubmitResult } from "../lib/api";
 import { connectSocket } from "@/lib/socket";
@@ -386,11 +387,32 @@ export default function BattleArena() {
   const isCurrentAccepted = currentProblem ? acceptedIds.has(currentProblem.title) : false;
 
   const handleSubmitAndLeave = useCallback(async () => {
-    if (currentProblem && !acceptedIds.has(currentProblem.title)) {
-      await handleSubmit();
+    if (!problems || problems.length === 0 || !battleId) {
+      await leaveBattle("/");
+      return;
     }
-    await leaveBattle(`/results/${battleId}`);
-  }, [currentProblem, handleSubmit, battleId, acceptedIds, leaveBattle]);
+
+    setShowLeaveDialog(false);
+    setSubmitting(true);
+    toast("Submitting all questions...");
+
+    for (let i = 0; i < problems.length; i++) {
+      const problem = problems[i];
+      const problemCode = codes[i] || "";
+
+      if (problemCode.trim()) {
+        try {
+          await battleApi.submit(battleId, problem.id, problemCode, "python");
+        } catch (error) {
+          console.error(`Failed to submit ${problem.title}:`, error);
+        }
+      }
+    }
+
+    setSubmitting(false);
+    toast.success("Submitted! Redirecting to Dashboard...");
+    await leaveBattle("/");
+  }, [problems, codes, battleId, leaveBattle]);
 
   const isUrgent = timeLeft < 5 * 60;
   const iLeading = myScore >= opponentScore;
@@ -454,8 +476,8 @@ export default function BattleArena() {
               <LogOut className="h-7 w-7 text-destructive" />
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold mb-1">Leave the Arena?</h2>
-              <p className="text-sm text-muted-foreground">Submit your current code and see results.</p>
+              <h2 className="text-xl font-bold mb-1">Submitting...</h2>
+              <p className="text-sm text-muted-foreground">Submitting all questions and leaving.</p>
             </div>
             <div className="flex flex-col gap-2 w-full">
               <button
