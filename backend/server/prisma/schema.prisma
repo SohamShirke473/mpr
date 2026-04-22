@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  email          String   @unique
+  passwordHash String
+  createdAt      DateTime @default(now())
+  totalBattles   Int      @default(0)
+  battlesWon     Int      @default(0)
+  battlesLost    Int      @default(0)
+  battlesDraw    Int      @default(0)
+  totalPoints    Int      @default(0)
+  avgScore      Int      @default(0)
+
+  submissions Submission[]
+  battlesAsP1 Battle[]     @relation("Player1")
+  battlesAsP2 Battle[]     @relation("Player2")
+  wins        Battle[]     @relation("Winner")
+}
+
+model Battle {
+  id       String @id @default(uuid())
+  roomCode String @unique
+
+  player1Id String
+  player2Id String?
+  winnerId  String?
+
+  player1Connected Boolean   @default(false)
+  player2Connected Boolean   @default(false)
+  endsAt           DateTime?
+
+  player1 User  @relation("Player1", fields: [player1Id], references: [id])
+  player2 User? @relation("Player2", fields: [player2Id], references: [id])
+  winner  User? @relation("Winner", fields: [winnerId], references: [id])
+
+  questionEasyId   String?
+  questionMediumId String?
+  questionHardId   String?
+
+  questionEasy   Question? @relation("EasyQuestion", fields: [questionEasyId], references: [id])
+  questionMedium Question? @relation("MediumQuestion", fields: [questionMediumId], references: [id])
+  questionHard   Question? @relation("HardQuestion", fields: [questionHardId], references: [id])
+
+  player1Score Int @default(0)
+  player2Score Int @default(0)
+
+  player1AiBonus Int @default(0)
+  player2AiBonus Int @default(0)
+
+  player1EasyLastSubmissionTime    DateTime?
+  player1MediumLastSubmissionTime DateTime?
+  player1HardLastSubmissionTime   DateTime?
+
+  player2EasyLastSubmissionTime    DateTime?
+  player2MediumLastSubmissionTime DateTime?
+  player2HardLastSubmissionTime   DateTime?
+
+  createdAt DateTime  @default(now())
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  status   BattleStatus @default(PENDING)
+  aiReview String?
+
+  submissions Submission[]
+}
+
+model Question {
+  id          String     @id @default(uuid())
+  title       String
+  difficulty  Difficulty
+  description String
+
+  inputFormat  String
+  outputFormat String
+  constraints  String
+
+  tags String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  testcases   TestCase[]
+  submissions Submission[]
+
+  battlesEasy   Battle[] @relation("EasyQuestion")
+  battlesMedium Battle[] @relation("MediumQuestion")
+  battlesHard   Battle[] @relation("HardQuestion")
+}
+
+model TestCase {
+  id         String @id @default(uuid())
+  questionId String
+
+  input          String
+  expectedOutput String
+  isSample       Boolean @default(false)
+
+  testCaseNumber Int
+  timeLimitMs    Int
+  memoryLimitMb  Int
+
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+model Submission {
+  id String @id @default(uuid())
+
+  userId     String
+  battleId   String?
+  questionId String
+
+  code     String
+  language String
+
+  testCasesPassed   Int
+  pointsEarned      Int
+  multiplierApplied Int @default(1)
+
+  executionTimeMs Int
+  memoryUsedMb    Int
+
+  submittedAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  battle   Battle?  @relation(fields: [battleId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum BattleStatus {
+  PENDING
+  READY
+  ONGOING
+  COMPLETED
+  CANCELLED
+}

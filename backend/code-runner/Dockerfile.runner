@@ -1,0 +1,8 @@
+# Dockerfile.runner
+FROM python:3.11-slim
+
+RUN useradd -m runner
+USER runner
+WORKDIR /home/runner
+
+CMD ["python3", "main.py"]
