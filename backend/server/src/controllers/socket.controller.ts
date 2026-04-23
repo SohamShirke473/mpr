@@ -513,7 +513,13 @@ export function setupSocketHandlers(io: Server): void {
                   disqualifiedPlayerId: disqualifiedId,
                   player1AiBonus: isPlayer1 ? 0 : battle.player1AiBonus,
                   player2AiBonus: isPlayer2 ? 0 : battle.player2AiBonus,
-                  aiReview: JSON.stringify({ message: "Disqualified for violations", disqualifiedPlayerId: disqualifiedId }),
+                  aiReview: JSON.stringify({
+                    message: "Disqualified for violations",
+                    disqualifiedPlayerId: disqualifiedId,
+                    player1: { strengths: [], improvements: [] },
+                    player2: { strengths: [], improvements: [] },
+                    questions: []
+                  }),
                 },
               });
 

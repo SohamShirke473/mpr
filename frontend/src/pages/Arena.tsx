@@ -176,8 +176,13 @@ export default function BattleArena() {
         toast.error("Battle was cancelled");
         void leaveBattle("/");
       } else if (disqualified) {
-        toast.error("You have been disqualified for violations");
-        void leaveBattle("/");
+        if (winnerId && winnerId === user?.id) {
+          toast.success("You won! Opponent was disqualified.");
+          void leaveBattle(`/results/${battleId}`);
+        } else {
+          toast.error("You have been disqualified for violations");
+          void leaveBattle("/");
+        }
       } else {
         void leaveBattle(`/results/${battleId}`);
       }
@@ -189,10 +194,6 @@ export default function BattleArena() {
       const myViolations = isPlayer1 ? data.player1Violations : data.player2Violations;
       
       setViolations(myViolations);
-      
-      if (myViolations >= MAX_VIOLATIONS) {
-        toast.error("You have been disqualified for too many violations");
-      }
     });
 
     socket.on("opponent_disconnected", () => {

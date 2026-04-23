@@ -231,6 +231,8 @@ export default function Results() {
     }
   }, [battleId, navigate]);
 
+  console.log("[Results] Debug:", { battleId, isAuthLoading, isBattleLoading, error, battleData });
+
   if (isAuthLoading || isBattleLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground">
@@ -255,6 +257,7 @@ export default function Results() {
           <div className="flex flex-col items-center gap-4">
             <AlertTriangle className="h-8 w-8 text-rose-500" />
             <p className="text-sm text-muted-foreground">Failed to load battle results</p>
+            <p className="text-xs text-muted-foreground">{error?.message || "Unknown error"}</p>
             <button
               onClick={() => navigate("/")}
               className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold"
@@ -268,9 +271,55 @@ export default function Results() {
   }
 
   const { data: battle } = battleData;
-  const { status, message } = battle;
+    
+    console.log("[Results] Battle data:", JSON.stringify(battle));
+    
+    if (!battle) {
+      return (
+        <div className="min-h-screen bg-background text-foreground">
+          <Header />
+          <PageBackground />
+          <main className="relative z-10 flex items-center justify-center min-h-[80vh]">
+            <div className="flex flex-col items-center gap-4">
+              <AlertTriangle className="h-8 w-8 text-rose-500" />
+              <p className="text-sm text-muted-foreground">No battle data received</p>
+              <button
+                onClick={() => navigate("/")}
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold"
+              >
+                Go Home
+              </button>
+            </div>
+          </main>
+        </div>
+      );
+    }
 
-  if (status !== "COMPLETED") {
+    const status = battle.status;
+    const message = battle.message;
+
+    if (!battle || !status) {
+      return (
+        <div className="min-h-screen bg-background text-foreground">
+          <Header />
+          <PageBackground />
+          <main className="relative z-10 flex items-center justify-center min-h-[80vh]">
+            <div className="flex flex-col items-center gap-4">
+              <AlertTriangle className="h-8 w-8 text-rose-500" />
+              <p className="text-sm text-muted-foreground">No battle data received</p>
+              <button
+                onClick={() => navigate("/")}
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold"
+              >
+                Go Home
+              </button>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    if (status !== "COMPLETED") {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Header />
@@ -566,7 +615,7 @@ export default function Results() {
                   baseScore={myPlayer?.baseScore || 0}
                   aiBonus={myPlayer?.aiBonus || 0}
                 />
-                {isInBattle && battle.aiReview && (
+                {isInBattle && battle.aiReview && battle.aiReview.player1 && battle.aiReview.player2 && (
                   <CardContainer className="p-4">
                     <PlayerFeedback
                       title="Your Feedback"
@@ -578,7 +627,7 @@ export default function Results() {
               </div>
               
               <div className="space-y-3">
-                {battle.aiReview?.questions?.map((review) => (
+                {battle.aiReview?.questions && battle.aiReview.questions.length > 0 && battle.aiReview.questions.map((review) => (
                   <QuestionReviewCard
                     key={review.title}
                     review={review}
