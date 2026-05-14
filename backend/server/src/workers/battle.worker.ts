@@ -52,24 +52,7 @@ new Worker<BattleEndJob>(
     const p2SubCount = battle.submissions.filter(s => s.userId === battle.player2Id).length;
     console.log(`[battle:end] p1 submissions=${p1SubCount}, p2 submissions=${p2SubCount}`);
 
-    // Validate both players exist
-    if (!battle.player2Id) {
-      console.log("[battle:end] No player2, marking battle complete with 0 AI bonus");
-      await prisma.battle.update({
-        where: { id: battleId },
-        data: {
-          status: "COMPLETED",
-          endedAt: new Date(),
-          winnerId: battle.player1Id, // Player 1 wins by default
-          player1AiBonus: 0,
-          player2AiBonus: 0,
-          aiReview: JSON.stringify({ message: "No opponent" }),
-        },
-      });
-      broadcast(battleId, { event: "battle:end", payload: { cancelled: false } });
-      delete battleSockets[battleId];
-      return;
-    }
+    // Validate both players exist - evaluateBattle handles missing player2 internally now
 
     // Call AI with proper player IDs
     const p1Id = battle.player1.id;

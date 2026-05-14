@@ -421,6 +421,112 @@ export const questions = [
     ]
   },
   {
+    "title": "Maximum Depth Of Binary Tree",
+    "difficulty": "EASY" as const,
+    "description": "Given the root of a binary tree, return its maximum depth. The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.",
+    "inputFormat": "One line: space-separated level-order values, with null for missing nodes.",
+    "outputFormat": "Integer representing maximum depth of the tree.",
+    "constraints": "0 <= number of nodes <= 10^5, -100 <= Node.val <= 100",
+    "tags": ["tree", "dfs", "bfs", "binary-tree"],
+    "sampleCases": [
+      {
+        "input": "1 2 3 4 5 6 7",
+        "expectedOutput": "3"
+      },
+      {
+        "input": "1 2 2 3 3 null null 4 4",
+        "expectedOutput": "4"
+      }
+    ],
+    "hiddenCases": [
+      {
+        "input": "1 null 2 null 3 null 4 null 5",
+        "expectedOutput": "5"
+      },
+      {
+        "input": "1",
+        "expectedOutput": "1"
+      },
+      {
+        "input": "",
+        "expectedOutput": "0"
+      },
+      {
+        "input": "3 9 20 null null 15 7",
+        "expectedOutput": "3"
+      },
+      {
+        "input": "1 2 null 3 null 4 null",
+        "expectedOutput": "4"
+      },
+      {
+        "input": "1 null 2",
+        "expectedOutput": "2"
+      },
+      {
+        "input": "5 4 8 11 null 13 4 7 2 null null null 1",
+        "expectedOutput": "4"
+      },
+      {
+        "input": "0",
+        "expectedOutput": "1"
+      }
+    ]
+  },
+  {
+    "title": "Climbing Stairs",
+    "difficulty": "EASY" as const,
+    "description": "You are climbing a staircase. It takes n steps to reach the top. Each time you can climb either 1 or 2 steps. Return the number of distinct ways to reach the top.",
+    "inputFormat": "One line: integer n.",
+    "outputFormat": "Single integer representing number of distinct ways.",
+    "constraints": "1 <= n <= 45",
+    "tags": ["math", "dp"],
+    "sampleCases": [
+      {
+        "input": "3",
+        "expectedOutput": "3"
+      },
+      {
+        "input": "5",
+        "expectedOutput": "8"
+      }
+    ],
+    "hiddenCases": [
+      {
+        "input": "1",
+        "expectedOutput": "1"
+      },
+      {
+        "input": "2",
+        "expectedOutput": "2"
+      },
+      {
+        "input": "4",
+        "expectedOutput": "5"
+      },
+      {
+        "input": "10",
+        "expectedOutput": "89"
+      },
+      {
+        "input": "15",
+        "expectedOutput": "987"
+      },
+      {
+        "input": "20",
+        "expectedOutput": "10946"
+      },
+      {
+        "input": "30",
+        "expectedOutput": "1346269"
+      },
+      {
+        "input": "45",
+        "expectedOutput": "1836311903"
+      }
+    ]
+  },
+  {
     "title": "3Sum",
     "difficulty": "MEDIUM" as const,
     "description": "Given an integer array nums, return all the unique triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, j != k and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets.",
@@ -431,45 +537,45 @@ export const questions = [
     "sampleCases": [
       {
         "input": "-1 0 1",
-        "expectedOutput": "[[-1, 0, 1]]"
+        "expectedOutput": "-1 0 1"
       },
       {
-        "input": "0 0 0",
-        "expectedOutput": "[[0, 0, 0]]"
+        "input": "-1 0 1 2 -1 -4",
+        "expectedOutput": "-1 -1 2\n-1 0 1"
       }
     ],
     "hiddenCases": [
       {
-        "input": "-1 0 1 2 -1 -4",
-        "expectedOutput": "[[-1, -1, 2], [-1, 0, 1]]"
+        "input": "0 0 0",
+        "expectedOutput": "0 0 0"
       },
       {
         "input": "1 2 -2 -1",
-        "expectedOutput": "[]"
+        "expectedOutput": ""
       },
       {
         "input": "0 0 0 0 0",
-        "expectedOutput": "[[0, 0, 0]]"
+        "expectedOutput": "0 0 0"
       },
       {
         "input": "-2 0 1 1 2",
-        "expectedOutput": "[[-2, 0, 2], [-2, 1, 1]]"
+        "expectedOutput": "-2 0 2\n-2 1 1"
       },
       {
         "input": "-100000 0 100000",
-        "expectedOutput": "[[-100000, 0, 100000]]"
+        "expectedOutput": "-100000 0 100000"
       },
       {
         "input": "1 -1 -1 0",
-        "expectedOutput": "[[-1, 0, 1]]"
+        "expectedOutput": "-1 0 1"
       },
       {
         "input": "-3 -2 -1 0 1 2 3",
-        "expectedOutput": "[[-3, 0, 3], [-3, 1, 2], [-2, -1, 3], [-2, 0, 2], [-1, 0, 1]]"
+        "expectedOutput": "-3 0 3\n-3 1 2\n-2 -1 3\n-2 0 2\n-1 0 1"
       },
       {
         "input": "-1 -1 0 0 1 1",
-        "expectedOutput": "[[-1, 0, 1]]"
+        "expectedOutput": "-1 0 1"
       }
     ]
   },
@@ -590,45 +696,45 @@ export const questions = [
     "sampleCases": [
       {
         "input": "1 3\n2 6\n8 10\n15 18",
-        "expectedOutput": "[[1, 6], [8, 10], [15, 18]]"
+        "expectedOutput": "1 6\n8 10\n15 18"
       },
       {
         "input": "1 4\n4 5",
-        "expectedOutput": "[[1, 5]]"
+        "expectedOutput": "1 5"
       }
     ],
     "hiddenCases": [
       {
         "input": "1 2\n3 4\n5 6",
-        "expectedOutput": "[[1, 2], [3, 4], [5, 6]]"
+        "expectedOutput": "1 2\n3 4\n5 6"
       },
       {
         "input": "1 10\n2 3\n4 8",
-        "expectedOutput": "[[1, 10]]"
+        "expectedOutput": "1 10"
       },
       {
         "input": "5 7\n1 3\n2 6",
-        "expectedOutput": "[[1, 7]]"
+        "expectedOutput": "1 7"
       },
       {
         "input": "1 1\n2 2\n3 3",
-        "expectedOutput": "[[1, 1], [2, 2], [3, 3]]"
+        "expectedOutput": "1 1\n2 2\n3 3"
       },
       {
         "input": "0 5\n5 10\n10 15",
-        "expectedOutput": "[[0, 15]]"
+        "expectedOutput": "0 15"
       },
       {
         "input": "100 200\n150 250\n300 400",
-        "expectedOutput": "[[100, 250], [300, 400]]"
+        "expectedOutput": "100 250\n300 400"
       },
       {
         "input": "6 8\n1 9\n2 4\n4 7",
-        "expectedOutput": "[[1, 9]]"
+        "expectedOutput": "1 9"
       },
       {
         "input": "3 5\n7 9\n6 8\n1 2",
-        "expectedOutput": "[[1, 2], [3, 5], [6, 9]]"
+        "expectedOutput": "1 2\n3 5\n6 9"
       }
     ]
   },
@@ -740,55 +846,55 @@ export const questions = [
   },
   {
     "title": "Binary Tree Level Order Traversal",
-    "difficulty": "MEDIUM" as const,
-    "description": "Given the root of a binary tree, return its level order traversal (level by level from left to right).",
-    "inputFormat": "Single line: level-order array representation of tree (use null for missing nodes).",
-    "outputFormat": "2D array representing level order traversal.",
-    "constraints": "0 <= number of nodes <= 2000, -1000 <= Node.val <= 1000",
+    "difficulty": "MEDIUM",
+    "description": "Given the root of a binary tree in level-order array form, return its level order traversal (level by level from left to right).",
+    "inputFormat": "First line contains integer n (number of elements). Second line contains n space-separated values representing the tree in level-order. Use 'null' for missing nodes.",
+    "outputFormat": "First line contains integer k (number of levels). Next k lines contain space-separated node values for each level.",
+    "constraints": "0 <= n <= 2000, -1000 <= Node.val <= 1000",
     "tags": ["tree", "bfs", "binary-tree"],
     "sampleCases": [
       {
-        "input": "1",
-        "expectedOutput": "[[1]]"
+        "input": "1\n1",
+        "expectedOutput": "1\n1"
       },
       {
-        "input": "3 9 20 null null 15 7",
-        "expectedOutput": "[[3], [9, 20], [15, 7]]"
+        "input": "7\n3 9 20 null null 15 7",
+        "expectedOutput": "3\n3\n9 20\n15 7"
       }
     ],
     "hiddenCases": [
       {
-        "input": "",
-        "expectedOutput": "[]"
+        "input": "0",
+        "expectedOutput": "0"
       },
       {
-        "input": "1 2 3 4 5 6 7",
-        "expectedOutput": "[[1], [2, 3], [4, 5, 6, 7]]"
+        "input": "7\n1 2 3 4 5 6 7",
+        "expectedOutput": "3\n1\n2 3\n4 5 6 7"
       },
       {
-        "input": "1 null 2 null 3 null 4",
-        "expectedOutput": "[[1], [2], [3], [4]]"
+        "input": "7\n1 null 2 null 3 null 4",
+        "expectedOutput": "4\n1\n2\n3\n4"
       },
       {
-        "input": "1 2 null 3 null 4 null",
-        "expectedOutput": "[[1], [2], [3], [4]]"
+        "input": "7\n1 2 null 3 null 4 null",
+        "expectedOutput": "4\n1\n2\n3\n4"
       },
       {
-        "input": "0 -1 -2 -3 -4 -5 -6",
-        "expectedOutput": "[[0], [-1, -2], [-3, -4, -5, -6]]"
+        "input": "7\n0 -1 -2 -3 -4 -5 -6",
+        "expectedOutput": "3\n0\n-1 -2\n-3 -4 -5 -6"
       },
       {
-        "input": "1 2 3 null 4 null 5 null 6 null 7 null 8 null 9 null 10 null 11 null 12 null 13 null 14 null 15 null 16 null 17 null 18 null 19 null 20",
-        "expectedOutput": "[[1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20]]"
+        "input": "39\n1 2 3 null 4 null 5 null 6 null 7 null 8 null 9 null 10 null 11 null 12 null 13 null 14 null 15 null 16 null 17 null 18 null 19 null 20",
+        "expectedOutput": "11\n1\n2 3\n4 5\n6 7\n8 9\n10 11\n12 13\n14 15\n16 17\n18 19\n20"
       },
       {
-        "input": "10 5 15 null null 6 20",
-        "expectedOutput": "[[10], [5, 15], [6, 20]]"
+        "input": "7\n10 5 15 null null 6 20",
+        "expectedOutput": "3\n10\n5 15\n6 20"
       },
       {
-        "input": "3 9 20 15 7 18 19 21 null null null null 22 23 24 25 26 null 27 28 29 30",
-        "expectedOutput": "[[3], [9, 20], [15, 7, 18, 19], [21, 22, 23, 24], [25, 26, 27, 28, 29, 30]]"
-      },
+        "input": "22\n3 9 20 15 7 18 19 21 null null null null 22 23 24 25 26 null 27 28 29 30",
+        "expectedOutput": "5\n3\n9 20\n15 7 18 19\n21 22 23 24\n25 26 27 28 29 30"
+      }
     ]
   },
   {
@@ -950,59 +1056,60 @@ export const questions = [
       }
     ]
   },
-  {
-    "title": "Merge K Sorted Lists",
-    "difficulty": "HARD" as const,
-    "description": "You are given an array of k linked lists, each sorted in ascending order. Merge all the linked lists into one sorted linked list and return it.",
-    "inputFormat": "First line: k lists represented as arrays (e.g., [[1,4,5],[1,3,4],[2,6]]).",
-    "outputFormat": "Single sorted list containing all elements.",
-    "constraints": "0 <= k <= 10^4, 0 <= lists[i].length <= 500, -10^4 <= lists[i][j] <= 10^4, total number of nodes <= 10^4",
-    "tags": ["linked-list", "divide-and-conquer", "heap", "merge-sort"],
-    "sampleCases": [
-      {
-        "input": "1 2\n3 4",
-        "expectedOutput": "[1,2,3,4]"
-      },
-      {
-        "input": "5\n1\n3",
-        "expectedOutput": "[1,3,5]"
-      }
-    ],
-    "hiddenCases": [
-      {
-        "input": "",
-        "expectedOutput": "[]"
-      },
-      {
-        "input": "\n",
-        "expectedOutput": "[]"
-      },
-      {
-        "input": "\n\n",
-        "expectedOutput": "[]"
-      },
-      {
-        "input": "1 4 5\n1 3 4\n2 6",
-        "expectedOutput": "[1,1,2,3,4,4,5,6]"
-      },
-      {
-        "input": "-10 -5 0\n2 3 9",
-        "expectedOutput": "[-10,-5,0,2,3,9]"
-      },
-      {
-        "input": "7 8 9",
-        "expectedOutput": "[7,8,9]"
-      },
-      {
-        "input": "1 1 1\n1 1\n1",
-        "expectedOutput": "[1,1,1,1,1,1]"
-      },
-      {
-        "input": "2 5 8\n1 3 7 9\n0 4 6",
-        "expectedOutput": "[0,1,2,3,4,5,6,7,8,9]"
-      }
-    ]
-  },
+  // {
+  //   "title": "Merge K Sorted Lists",
+  //   "difficulty": "HARD" as const,
+  //   "description": "You are given an array of k linked lists, each sorted in ascending order. Merge all the linked lists into one sorted linked list and return it.",
+  //   "inputFormat": "First line: k lists represented as arrays (e.g., [[1,4,5],[1,3,4],[2,6]]).",
+  //   "outputFormat": "Single sorted list containing all elements.",
+  //   "constraints": "0 <= k <= 10^4, 0 <= lists[i].length <= 500, -10^4 <= lists[i][j] <= 10^4, total number of nodes <= 10^4",
+  //   "tags": ["linked-list", "divide-and-conquer", "heap", "merge-sort"],
+  //   "sampleCases": [
+  //     {
+  //       "n": 2,
+  //       "input": "1 2\n3 4",
+  //       "expectedOutput": "1 2 3 4"
+  //     },
+  //     {
+  //       "n": 3,
+  //       "input": "5\n1\n3",
+  //       "expectedOutput": "1 3 5"
+  //     }
+  //   ],
+  //   "hiddenCases": [
+  //     {
+  //       "n": 3,
+  //       "input": "\n\n",
+  //       "expectedOutput": ""
+  //     },
+  //     {
+  //       "n": 3,
+  //       "input": "1 4 5\n1 3 4\n2 6",
+  //       "expectedOutput": "1 1 2 3 4 4 5 6"
+  //     },
+  //     {
+  //       "n": 2,
+  //       "input": "-10 -5 0\n2 3 9",
+  //       "expectedOutput": "-10 -5 0 2 3 9"
+  //     },
+  //     {
+  //       "n": 1,
+  //       "input": "7 8 9",
+  //       "expectedOutput": "7 8 9"
+  //     },
+  //     {
+  //       "n": 3,
+  //       "input": "1 1 1\n1 1\n1",
+  //       "expectedOutput": "1 1 1 1 1 1"
+  //     },
+  //     {
+  //       "n": 3,
+  //       "input": "2 5 8\n1 3 7 9\n0 4 6",
+  //       "expectedOutput": "0 1 2 3 4 5 6 7 8 9"
+
+  //     }
+  //   ]
+  // },
   {
     "title": "Binary Tree Maximum Path Sum",
     "difficulty": "HARD" as const,
@@ -1056,59 +1163,7 @@ export const questions = [
       }
     ]
   },
-  // {
-  //   "title": "Word Search II",
-  //   "difficulty": "HARD" as const,
-  //   "description": "Given a 2D board of characters and a list of words, return all words that can be formed using adjacent cells (horizontal or vertical). Each cell can be used only once per word.",
-  //   "inputFormat": "First line: m n (rows and columns). Next m lines: n space-separated characters. Next line: k (number of words). Next line: k space-separated words.",
-  //   "outputFormat": "Space-separated words found in the board (order does not matter).",
-  //   "constraints": "1 <= m, n <= 12, 1 <= k <= 3 * 10^4, 1 <= word length <= 10",
-  //   "tags": ["trie", "backtracking", "dfs", "matrix", "string"],
-  //   "sampleCases": [
-  //     {
-  //       "input": "2 2\na b\nc d\n2\nab cd",
-  //       "expectedOutput": "ab cd"
-  //     },
-  //     {
-  //       "input": "1 1\na\n1\na",
-  //       "expectedOutput": "a"
-  //     }
-  //   ],
-  //   "hiddenCases": [
-  //     {
-  //       "input": "4 4\no a a n\ne t a e\ni h k r\ni f l v\n4\noath pea eat rain",
-  //       "expectedOutput": "oath eat"
-  //     },
-  //     {
-  //       "input": "1 2\na a\n1\naaa",
-  //       "expectedOutput": ""
-  //     },
-  //     {
-  //       "input": "1 1\na\n1\nb",
-  //       "expectedOutput": ""
-  //     },
-  //     {
-  //       "input": "3 3\na b c\nd e f\ng h i\n4\nabc aei cfi beh",
-  //       "expectedOutput": "abc beh cfi"
-  //     },
-  //     {
-  //       "input": "2 2\na b\nc d\n1\nabcb",
-  //       "expectedOutput": ""
-  //     },
-  //     {
-  //       "input": "3 3\na a a\na a a\na a a\n3\naaaa aaaaa aaaaaa",
-  //       "expectedOutput": "aaaa aaaaa aaaaaa"
-  //     },
-  //     {
-  //       "input": "4 4\no a b n\no t a e\na h k r\na f l v\n4\noath path parent enact",
-  //       "expectedOutput": "oath"
-  //     },
-  //     {
-  //       "input": "3 3\np e a\ne r a\na n a\n4\npear pea ran era",
-  //       "expectedOutput": "pea era"
-  //     }
-  //   ]
-  // },
+
   {
     "title": "Trapping Rain Water",
     "difficulty": "HARD" as const,
@@ -1215,5 +1270,110 @@ export const questions = [
       }
     ]
   },
-
+  {
+    "title": "Wildcard Matching",
+    "difficulty": "HARD",
+    "description": "Given an input string s and a pattern p, implement wildcard pattern matching with support for '?' and '*'. '?' matches any single character. '*' matches any sequence of characters (including empty). The matching must cover the entire string.",
+    "inputFormat": "First line: string s. Second line: string p.",
+    "outputFormat": "Boolean value (true/false).",
+    "constraints": "0 <= s.length, p.length <= 2000, s contains lowercase English letters, p contains lowercase English letters, '?' or '*'",
+    "tags": ["string", "dp", "greedy"],
+    "sampleCases": [
+      {
+        "input": "aa\na",
+        "expectedOutput": "false"
+      },
+      {
+        "input": "aa\n*",
+        "expectedOutput": "true"
+      }
+    ],
+    "hiddenCases": [
+      {
+        "input": "cb\n?a",
+        "expectedOutput": "false"
+      },
+      {
+        "input": "\n*",
+        "expectedOutput": "true"
+      },
+      {
+        "input": "\n?",
+        "expectedOutput": "false"
+      },
+      {
+        "input": "abcde\na*e",
+        "expectedOutput": "true"
+      },
+      {
+        "input": "abcde\na*d",
+        "expectedOutput": "false"
+      },
+      {
+        "input": "abcd\n****",
+        "expectedOutput": "true"
+      },
+      {
+        "input": "abcd\na*c?",
+        "expectedOutput": "true"
+      },
+      {
+        "input": "mississippi\nm*iss*?pi",
+        "expectedOutput": "true"
+      }
+    ]
+  },
+  {
+    "title": "Best Time to Buy and Sell Stock III",
+    "difficulty": "HARD",
+    "description": "Given an array prices where prices[i] is the price of a stock on day i, return the maximum profit with at most two transactions. You must sell before buying again.",
+    "inputFormat": "First line: space-separated integers representing prices.",
+    "outputFormat": "Single integer representing maximum profit.",
+    "constraints": "1 <= prices.length <= 10^5, 0 <= prices[i] <= 10^5",
+    "tags": ["array", "dynamic-programming"],
+    "sampleCases": [
+      {
+        "input": "1 2 3 4 5",
+        "expectedOutput": "4"
+      },
+      {
+        "input": "7 6 4 3 1",
+        "expectedOutput": "0"
+      }
+    ],
+    "hiddenCases": [
+      {
+        "input": "3 3 5 0 0 3 1 4",
+        "expectedOutput": "6"
+      },
+      {
+        "input": "1",
+        "expectedOutput": "0"
+      },
+      {
+        "input": "2 4",
+        "expectedOutput": "2"
+      },
+      {
+        "input": "2 1 2 0 1",
+        "expectedOutput": "2"
+      },
+      {
+        "input": "5 2 4 0 1",
+        "expectedOutput": "3"
+      },
+      {
+        "input": "1 2 4 2 5 7 2 4 9 0",
+        "expectedOutput": "13"
+      },
+      {
+        "input": "6 1 3 2 4 7",
+        "expectedOutput": "7"
+      },
+      {
+        "input": "2 1 4 5 2 9 7",
+        "expectedOutput": "11"
+      }
+    ]
+  },
 ]

@@ -4,21 +4,21 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
 
 export async function reviewCode(req: Request, res: Response): Promise<void> {
-  const { prompt } = req.body;
-  if (!prompt) {
-    res.status(400).json({ error: "prompt is required" });
+  const { code, language } = req.body;
+  if (!code) {
+    res.status(400).json({ error: "code is required" });
     return;
   }
 
-  const trimmedPrompt = typeof prompt === "string" ? prompt.trim() : "";
-  if (trimmedPrompt.length < 10) {
-    res.status(400).json({ error: "prompt is too short" });
-    return;
-  }
+  const lang = language || "python";
+  const prompt = "You are an expert code reviewer. Analyze the following " + lang + " code and provide constructive feedback.\n" +
+    "Focus on: time and space complexity, code readability, potential bugs, performance suggestions.\n" +
+    "Code to review:\n```" + lang + "\n" + code + "\n```\n" +
+    "Return ONLY valid JSON with: summary, timeComplexity, spaceComplexity, codeQuality, issues[], suggestions[]";
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
     res.json({ text: response.text });
@@ -51,7 +51,7 @@ export async function chat(req: Request, res: Response): Promise<void> {
     }));
 
     const stream = await ai.models.generateContentStream({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       config: { systemInstruction: system },
       contents,
     });
@@ -210,8 +210,11 @@ export async function evaluateBattle(
   const p1Subs = byPlayer[player1Id] ?? [];
   const p2Subs = byPlayer[player2Id] ?? [];
 
-  // Validate submissions exist for both players
-  if (p1Subs.length === 0 && p2Subs.length === 0) {
+  // Handle case where one or both players have no submissions (disconnected/forfeit)
+  const p1HasSubs = p1Subs.length > 0;
+  const p2HasSubs = p2Subs.length > 0;
+
+  if (!p1HasSubs && !p2HasSubs) {
     console.error("[evaluateBattle] No submissions for either player!");
     return {
       questions: [],
@@ -219,6 +222,96 @@ export async function evaluateBattle(
       player2: { totalBonus: 0, strengths: [], improvements: [] },
       motivational: "Every expert was once a beginner.",
     };
+  }
+
+  // Handle single player submission (other disconnected)
+  if (!p1HasSubs || !p2HasSubs) {
+    const activePlayer = !p1HasSubs ? player2Id : player1Id;
+    const activeSubs = !p1HasSubs ? p2Subs : p1Subs;
+    const disconnectedPlayer = !p1HasSubs ? player1Id : player2Id;
+    console.log("[evaluateBattle] Single player mode: " + activePlayer + " submitted, " + disconnectedPlayer + " disconnected");
+
+    const buildSingleSection = activeSubs.map((s) => "Question \"" + s.questionTitle + "\" (" + s.difficulty + "):\n```\n" + s.code + "\n```").join("\n\n");
+    const questionsList = questions.map((q, i) => (i + 1) + ". \"" + q.title + "\" (" + q.difficulty + ") - " + q.constraints).join("\n");
+
+    const promptSingle = "You are reviewing code for a battle where one player disconnected. Analyze the submitted code.\n\nQuestions:\n" + questionsList + "\n\nPlayer who submitted (" + activePlayer + "):\n" + buildSingleSection + "\n\nAnalyze each question and return ONLY valid JSON with: questions[{title, difficulty, player1:{timeComplexity,spaceComplexity,codeQuality,improvements[]},player2:null,bonusReason}], player1:null, player2:{totalBonus:15,strengths:[],improvements:[]}. Rate based on code quality (max 25 bonus).";
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: promptSingle,
+      });
+
+      const raw = response.text ?? "";
+      const parsed = extractJSON(raw);
+
+      if (parsed && parsed.questions && Array.isArray(parsed.questions)) {
+        const validatedQuestions: QuestionReviewData[] = (parsed.questions ?? []).map((q) => ({
+          title: q.title ?? "",
+          difficulty: q.difficulty ?? "EASY",
+          player1: q.player1 ?? { timeComplexity: "Unknown", spaceComplexity: "Unknown", codeQuality: "Unknown", improvements: [] },
+          player2: q.player2 ?? { timeComplexity: "N/A", spaceComplexity: "N/A", codeQuality: "N/A", improvements: [] },
+          bonusReason: q.bonusReason ?? "Opponent disconnected",
+        }));
+
+        const bonus = Math.max(0, Math.min(25, parsed.player2?.totalBonus ?? parsed.player1?.totalBonus ?? 0));
+
+        if (!p1HasSubs) {
+          return {
+            questions: validatedQuestions,
+            player1: { totalBonus: 0, strengths: [], improvements: ["Opponent disconnected - forfeit"] },
+            player2: {
+              totalBonus: bonus,
+              strengths: parsed.player2?.strengths ?? [],
+              improvements: parsed.player2?.improvements ?? [],
+            },
+            motivational: "You won by forfeit. Better luck next time!",
+          };
+        } else {
+          return {
+            questions: validatedQuestions,
+            player1: {
+              totalBonus: bonus,
+              strengths: parsed.player1?.strengths ?? [],
+              improvements: parsed.player1?.improvements ?? [],
+            },
+            player2: { totalBonus: 0, strengths: [], improvements: ["Opponent disconnected - forfeit"] },
+            motivational: "Opponent disconnected - you win by forfeit!",
+          };
+        }
+      }
+    } catch (err) {
+      console.error("evaluateBattle single player error:", err);
+    }
+
+    const defaultBonus = 10;
+    if (!p1HasSubs) {
+      return {
+        questions: questions.map((q) => ({
+          title: q.title,
+          difficulty: q.difficulty,
+          player1: { timeComplexity: "N/A", spaceComplexity: "N/A", codeQuality: "N/A", improvements: [] },
+          player2: { timeComplexity: "N/A", spaceComplexity: "N/A", codeQuality: "N/A", improvements: [] },
+          bonusReason: "Opponent disconnected",
+        })),
+        player1: { totalBonus: 0, strengths: [], improvements: ["Opponent disconnected"] },
+        player2: { totalBonus: defaultBonus, strengths: ["Submitted code"], improvements: [] },
+        motivational: "You won by forfeit!",
+      };
+    } else {
+      return {
+        questions: questions.map((q) => ({
+          title: q.title,
+          difficulty: q.difficulty,
+          player1: { timeComplexity: "N/A", spaceComplexity: "N/A", codeQuality: "N/A", improvements: [] },
+          player2: { timeComplexity: "N/A", spaceComplexity: "N/A", codeQuality: "N/A", improvements: [] },
+          bonusReason: "Opponent disconnected",
+        })),
+        player1: { totalBonus: defaultBonus, strengths: ["Submitted code"], improvements: [] },
+        player2: { totalBonus: 0, strengths: [], improvements: ["Opponent disconnected"] },
+        motivational: "You won by forfeit!",
+      };
+    }
   }
 
   if (p1Subs.length === 0) {
@@ -292,7 +385,7 @@ Return ONLY valid JSON, no other text.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
